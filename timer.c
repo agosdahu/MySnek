@@ -73,11 +73,37 @@ void timer_tickmod(uint32_t tick)
 
 }
 
+void timer_test(uint32_t testVal)
+{
+	static uint8_t flag = 0x00;
+	//TEST
+	    if((testVal == 0xEE000010) && flag)
+	    {
+	    	flag = 0x00;
+	    	xil_printf("FLAG_ZERO\n");
+	    }
+	    else if((testVal == 0xEE000001) && !flag)
+	    {
+	    	timer_tickmod(49998000);
+	    	xil_printf("SLOW\n");
+	    	flag = 1;
+	    }
+	    else if((testVal == 0xEE000002) && !flag)
+	    {
+	    	timer_tickmod(4999800);
+	    	xil_printf("FAST\n");
+			flag = 1;
+	    }
+	    else if((testVal == 0xEE000004) && !flag)
+	        {
+	        	timer_tickmod(24999000);
+	        	xil_printf("MID\n");
+	    		flag = 1;
+	        }
+}
+
 void int_handler(void *instancePtr)
 {
-
-	volatile static uint32_t test_bit;
-
 	// #TODO mit csináljon ez a sz@r
 	xil_printf("INT\n");
 

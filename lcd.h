@@ -26,7 +26,7 @@ void sendColAddr(uint8_t col);
 void sendMemPageAddr(uint8_t memPage);
 void sendDataLCD(uint8_t data);
 void sendbyteLCD(uint8_t byte);
-void initSnake();
+void initSnake(snek_pos_type head, snek_pos_type tail);
 void moveSnek();
 void drawSnekHead(snek_pos_type);
 void drawSnekTail(snek_pos_type);

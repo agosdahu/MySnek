@@ -16,5 +16,6 @@
 
 void timer_config_int();
 void timer_tickmod(uint32_t tick);
+void timer_test(uint32_t testVal);
 
 #endif /* TIMER_H_ */

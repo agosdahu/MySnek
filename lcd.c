@@ -29,31 +29,22 @@ void lcd_init()
 	}
 }
 
-void initSnake()
+void initSnake(snek_pos_type head, snek_pos_type tail)
 {
-	volatile static int i,j;
-	uint8_t snake_byte, col, memPage, y_bit, x_head, x_tail, y_tail;
-	x_tail = 9;
-	y_tail = 11;
-	x_head = 20;
+	volatile static int i;
+	uint8_t snake_byte, col, memPage, y_bit;
 
-	col = x_tail*3;
-	memPage = (y_tail*3)/8;
-	y_bit = (y_tail*3)%8;
+	col = tail.pos_x*3;
+	memPage = (tail.pos_y*3)/8;
+	y_bit = (tail.pos_y*3)%8;
 
 	sendMemPageAddr(memPage);
 	sendColAddr(col);
 	snake_byte = ((1 << y_bit) |  (1 << (y_bit+1)) | (1 << (y_bit+2)));
 
-	for(i=0; i<((x_head - x_tail)+1)*3; i++)
+	for(i=0; i<((head.pos_x - tail.pos_x)+1)*3; i++)
 	{
 		sendDataLCD(snake_byte);
-	}
-
-	for(i=0; i<10; i++)
-	{
-		//for(j=0; j<1000000; j++){}
-
 	}
 }
 void moveSnek()
@@ -68,7 +59,7 @@ void drawSnekHead(snek_pos_type head)
 
 	col = head.pos_x*3;
 	memPage = (head.pos_y*3)/8;
-	y_bit = (head.pos_y*3)%8;
+	y_bit = head.byte;
 
 	sendColAddr(col);
 

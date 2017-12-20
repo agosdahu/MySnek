@@ -29,6 +29,7 @@ typedef struct POSITION{
 	uint8_t pos_x;
 	uint8_t pos_y;
 	dir_t dir;
+	uint8_t byte;
 } snek_pos_type;
 
 #endif /* MYTYPE_H_ */
