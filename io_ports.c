@@ -55,10 +55,16 @@ uint8_t swChanged() //visszaadjuk a szint értékét, ha voltváltozás, egyébként me
 dir_t naviDir()
 {
 	uint32_t navi;
+	static uint32_t prev_navi = 0x08;// mert a default irány a jobbra
 
-	navi = Xil_In32(XPAR_CPLD_0_BASEADDR + CPLD_NAVI);
+	navi = Xil_In32(XPAR_CPLD_0_BASEADDR + CPLD_NAVI);	//REG olvasás
 
-	return (dir_t)navi;
+	if(navi)					// ha van használható érték, akkor azt használjuk fel
+		prev_navi = navi;
+	else						// egyébként az utolsó nem nulla értékkel számolunk
+		navi = prev_navi;
+
+	return (dir_t)navi;			// valamint a jól kitalált enumerációs típusban dobjuk vissza a struct-unkba
 
 }
 

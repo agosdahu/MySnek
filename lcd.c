@@ -66,29 +66,38 @@ void drawSnek(snek_pos_type snek)
 
 void test()
 {
-	static int i = 0;
-	volatile uint8_t k;
+	static uint8_t memPage = 0;
+	static uint8_t col = 0;
+	static uint8_t byte = 0x01;
+	static uint8_t init_flag = 1;
 
-	//sendbyteLCD(0xB4);
-	//sendbyteLCD(0x08);
-	//sendbyteLCD(0x12);
-	for(k=0; k<50; k++)
+	if(init_flag)
 	{
-		sendDataLCD(0xE7);
+		sendMemPageAddr(memPage);
+		sendColAddr(col);
+		init_flag = 0;
 	}
 
-	if(++i%2)
-		sendbyteLCD(0xA7);
+	if(col >= 102u)
+	{
+		memPage++;
+		col = 0;
+		sendMemPageAddr(memPage);
+		sendColAddr(col);
+	}
+
+	if(memPage >= 8)
+	{
+		xil_printf("OVF");
+	}
 	else
-		sendbyteLCD(0xA6);
-
-	sendMemPageAddr(0x04);
-	for(k = 0; k < 10; k++)
 	{
-		sendColAddr(0x05);
-		sendDataLCD(0xE7);
+		col++;
+		byte = byte << 1;
+		if(byte == 0)
+			byte = 0x01;
+		sendDataLCD(byte);
 	}
-	//xil_printf("%i", i);
 }
 
 void lcd_clrscr()

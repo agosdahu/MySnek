@@ -12,6 +12,7 @@
 #include "xtmrctr_l.h"
 #include "xintc_l.h"
 #include "xil_printf.h"
+#include "inter.h"
 
 #define LVL_1	47500000u
 #define LVL_2	42500000u

@@ -96,7 +96,7 @@ void timer_test(uint32_t testVal)
 	    }
 	    else if((testVal == 0x00000004) && !flag)
 	        {
-	        	timer_tickmod(2499998);
+	        	timer_tickmod(24999998);
 	        	xil_printf("MID\n");
 	    		flag = 1;
 	        }
@@ -105,7 +105,6 @@ void timer_test(uint32_t testVal)
 void int_handler(void *instancePtr)
 {
 	// #TODO mit csináljon ez a sz@r
-	xil_printf("INT\n");
 	setFlag();
 
     uint32_t csr;

@@ -29,42 +29,45 @@
 #include "game_logic.h"
 
 void init();
+void newGame(uint8_t lvl);
 
-static uint8_t flag = 0;
-static snek_pos_type mySnek;
+static uint8_t flag = 0;		// INT vezérelt round-robin vezérlõ flag-je
+static snek_pos_type mySnek; 	//Fõleg (csak) a dir kell ebbõl...
+static uint8_t act_lvl = 1;
 
 int main()
 {
-	mySnek.dir = RIGHT;
 	uint8_t tmp;
-	static uint8_t act_lvl = 1;
 
 	init();
+	write7Seg(0);			// #TODO eredmény kijelzése a 7seg kijelzõn
 
     while(1)
     {
-    	tmp = swChanged();
+    	tmp = swChanged(); // LVL kapcsolók pollozása
     	if(tmp)
     	{
-    		act_lvl = tmp;		//change lvl 1v1
+    		act_lvl = tmp;		//change lvl, ha van változás
     		chgLVL(act_lvl);
     	}
 
-    	writeLED(act_lvl);
-    	mySnek.dir = naviDir();
-    	write7Seg(78);
-    	if(flag)
+    	writeLED(act_lvl);		// mindig aktuális szint kiírása
+    	mySnek.dir = naviDir();	// navigációs gomb pollozása (csak 0-tól eltérõ irány érdekel minket)
+
+    	if(flag)				// TIMER INT hatására lefut az aktuális paraméterekkel a játék logkája -> képernyõ frissítés
     	{
+    		//test();
+    		gameStep(mySnek);
     		// Do the Snek!
     		// DIR kiértékelése
     		// GAME_FIELD-be mentés/KAJA/halál
     		// GAME_FIELD-ben ok -> MEM_FIELDBE
     		// túúlcsorduló pixelek (memPage)
     		// LCD draw
-
+    		// lokális váltoóba menteni az értékejet
+    		//timer_test((uint32_t)mySnek.dir);	// #TODO ez nem kell, csak teszt
     		clrFlag();
     	}
-		timer_test((uint32_t)dir);
     }
     return 0;
 
@@ -85,8 +88,10 @@ void init()
 	snek_pos_type init_head, init_tail;
 
 	init_platform();
-	lcd_init();
-	lcd_clrscr();
+	lcd_init();		// kijelzõ INIT
+	lcd_clrscr();		// memória hulladék letörlése
+
+	// Kezdõ pozíciók belövése
 	init_head.pos_x = 13;
 	init_head.pos_y = 11;
 	init_tail.pos_x = 10;
@@ -94,8 +99,31 @@ void init()
 
 	mySnek.pos_x = init_head.pos_x;
 	mySnek.pos_y = init_head.pos_y;
+	//mySnek.dir = RIGHT; ezt a lépést a navi olvasással eldöntöttük...
 
-	initSnake(init_head, init_tail);
-	//#TODO SNEK mentése game_field-en és memField-en
-	timer_config_int();
+	resetGameField();
+	initGameField(init_head, init_tail, act_lvl);
+	initSnake(init_head, init_tail); 	// lcd-re rajzoljuk a Snek-et
+	initFood();							// KAJA random kirajzoltatása
+
+	timer_config_int();	//óra indul
+}
+
+void newGame(uint8_t lvl)
+{
+	snek_pos_type init_head, init_tail;
+	// Kezdõ pozíciók belövése
+	init_head.pos_x = 13;
+	init_head.pos_y = 11;
+	init_tail.pos_x = 10;
+	init_tail.pos_y = 11;
+
+	mySnek.pos_x = init_head.pos_x;
+	mySnek.pos_y = init_head.pos_y;
+	mySnek.dir = RIGHT;
+
+	resetGameField();								// játéktér legyalulása
+	initGameField(init_head, init_tail, lvl);		// játéktér újrarajzolása,paraméterek
+	initSnake(init_head, init_tail); 				// lcd-re rajzoljuk a Snek-et
+	initFood();							// KAJA random kirajzoltatása
 }
