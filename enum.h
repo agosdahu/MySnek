@@ -9,11 +9,11 @@
 #define ENUM_H_
 
 typedef enum DIRECTION {
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-	CENTER
+	UP 			= 0x01,
+	DOWN		= 0x02,
+	LEFT		= 0x04,
+	RIGHT		= 0x08,
+	CENTER		= 0x10
 } dir_t;
 
 #endif /* ENUM_H_ */

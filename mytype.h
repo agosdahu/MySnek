@@ -8,6 +8,7 @@
 #ifndef MYTYPE_H_
 #define MYTYPE_H_
 
+#include "xparameters.h"
 #include "enum.h"
 
 //*****************************************************************************

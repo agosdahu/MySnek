@@ -15,8 +15,8 @@ void timer_config_int()
 	uint32_t val = 0;
     uint32_t load = 0;
 
-    //10 usec-et betöltünk -> tick idõ; (TRLx + 2) * AXI_CLOCK (50MHz)
-    load = 49998000; //#TODO ez mennyi legyen 1s ???
+    //10 usec-et betöltünk -> tick idõ; (TLRx + 2) / AXI_CLOCK (50MHz)
+    load = 49999998; //#TODO ez mennyi legyen 1s ???
 
 
     //Load érték betöltése a 0-s timer load regiszterébe
@@ -77,26 +77,26 @@ void timer_test(uint32_t testVal)
 {
 	static uint8_t flag = 0x00;
 	//TEST
-	    if((testVal == 0xEE000010) && flag)
+	    if((testVal == 0x00000010) && flag)
 	    {
 	    	flag = 0x00;
 	    	xil_printf("FLAG_ZERO\n");
 	    }
-	    else if((testVal == 0xEE000001) && !flag)
+	    else if((testVal == 0x00000001) && !flag)
 	    {
-	    	timer_tickmod(49998000);
+	    	timer_tickmod(49999998);
 	    	xil_printf("SLOW\n");
 	    	flag = 1;
 	    }
-	    else if((testVal == 0xEE000002) && !flag)
+	    else if((testVal == 0x00000002) && !flag)
 	    {
-	    	timer_tickmod(4999800);
+	    	timer_tickmod(4999998);
 	    	xil_printf("FAST\n");
 			flag = 1;
 	    }
-	    else if((testVal == 0xEE000004) && !flag)
+	    else if((testVal == 0x00000004) && !flag)
 	        {
-	        	timer_tickmod(24999000);
+	        	timer_tickmod(2499998);
 	        	xil_printf("MID\n");
 	    		flag = 1;
 	        }
@@ -106,6 +106,7 @@ void int_handler(void *instancePtr)
 {
 	// #TODO mit csináljon ez a sz@r
 	xil_printf("INT\n");
+	setFlag();
 
     uint32_t csr;
     csr = XTmrCtr_GetControlStatusReg(XPAR_AXI_TIMER_0_BASEADDR, 0);
