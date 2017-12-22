@@ -76,8 +76,8 @@ dir_t naviDir()
 
 void write7Seg(uint8_t num)
 {
-	Xil_Out32(XPAR_CPLD_0_BASEADDR + CPLD_7SEG_H, (uint32_t)(num/10));
-	Xil_Out32(XPAR_CPLD_0_BASEADDR + CPLD_7SEG_L, (uint32_t)(num%10));
+	Xil_Out32(XPAR_CPLD_0_BASEADDR + CPLD_7SEG_H, num/10);
+	Xil_Out32(XPAR_CPLD_0_BASEADDR + CPLD_7SEG_L, num%10);
 }
 
 void writeLED(uint8_t lvl)
