@@ -34,16 +34,18 @@ void newGame(uint8_t lvl);
 static uint8_t flag = 0;		// INT vezérelt round-robin vezérlõ flag-je
 static snek_pos_type mySnek; 	//Fõleg (csak) a dir kell ebbõl...
 static uint8_t act_lvl = 1;
+static uint8_t act_pnt = 98;
+static uint8_t end_of_game = 0;
 
 int main()
 {
 	uint8_t tmp;
 
 	init();
-	write7Seg(0);			// #TODO eredmény kijelzése a 7seg kijelzõn
 
     while(1)
     {
+    	write7Seg(act_pnt);
     	tmp = swChanged(); // LVL kapcsolók pollozása
     	if(tmp)
     	{
@@ -54,18 +56,22 @@ int main()
     	writeLED(act_lvl);		// mindig aktuális szint kiírása
     	mySnek.dir = naviDir();	// navigációs gomb pollozása (csak 0-tól eltérõ irány érdekel minket)
 
+    	if(mySnek.dir == CENTER)
+    	{
+    		newGame(1);
+    		reNavi();
+    	}
+
     	if(flag)				// TIMER INT hatására lefut az aktuális paraméterekkel a játék logkája -> képernyõ frissítés
     	{
-    		//test();
-    		gameStep(mySnek);
-    		// Do the Snek!
-    		// DIR kiértékelése
-    		// GAME_FIELD-be mentés/KAJA/halál
-    		// GAME_FIELD-ben ok -> MEM_FIELDBE
-    		// túúlcsorduló pixelek (memPage)
-    		// LCD draw
-    		// lokális váltoóba menteni az értékejet
-    		//timer_test((uint32_t)mySnek.dir);	// #TODO ez nem kell, csak teszt
+    		if(end_of_game)
+    		{
+    			test();
+    		}
+
+    		else
+    			gameStep(mySnek);
+
     		clrFlag();
     	}
     }
@@ -83,12 +89,23 @@ void clrFlag()
 	flag = 0;
 }
 
+void levelUP()
+{
+	if(act_lvl < 8)
+	{
+		act_lvl++;
+		lcd_clrscr();
+		chgLVL(act_lvl);
+		newGame(act_lvl);
+	}
+}
+
 void init()
 {
 	snek_pos_type init_head, init_tail;
 
-	init_platform();
-	lcd_init();		// kijelzõ INIT
+	//init_platform();
+	lcd_init();			// kijelzõ INIT
 	lcd_clrscr();		// memória hulladék letörlése
 
 	// Kezdõ pozíciók belövése
@@ -122,8 +139,45 @@ void newGame(uint8_t lvl)
 	mySnek.pos_y = init_head.pos_y;
 	mySnek.dir = RIGHT;
 
+	lcd_clrscr();
+	act_lvl = lvl;
+	clrPoints();
+	end_of_game = 0;
+
 	resetGameField();								// játéktér legyalulása
 	initGameField(init_head, init_tail, lvl);		// játéktér újrarajzolása,paraméterek
 	initSnake(init_head, init_tail); 				// lcd-re rajzoljuk a Snek-et
 	initFood();							// KAJA random kirajzoltatása
+}
+
+void clrPoints()
+{
+	act_pnt = 0;
+}
+
+void gg()
+{
+	end_of_game = 1;
+	timer_tickmod(500000);
+}
+
+void pointPlus()
+{
+	if(act_pnt == 99)
+	{
+		if(act_lvl == 8)
+		{
+			gg();
+		}
+		else
+		{
+			levelUP();
+			clrPoints();
+		}
+	}
+	else
+	{
+		act_pnt++;
+		initFood();
+	}
 }

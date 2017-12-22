@@ -12,6 +12,9 @@ static dir_t trail[GAME_FIELD_X][GAME_FIELD_Y];
 
 static snek_pos_type head;
 static snek_pos_type tail;
+static uint8_t rand_flag = 1;
+
+
 
 void gameStep(snek_pos_type snek)
 {
@@ -21,14 +24,13 @@ void gameStep(snek_pos_type snek)
 	/* FALBA ÜTKÖZÜNK?*/
 	if(checkIfWall(head))
 	{//#TODO HALÁL
-
+		gg();
 	}
 
 	if(checkIfFood(head))
 	{//#TODO KAJA
-		//plussz pont -> szintlépés?
-		//új kaja
-		initFood();
+		//plussz pont 99+ -> szintlépés
+		pointPlus();   			//új kaja generálás included
 		/*kígyó növelés*/
 		updateHead();
 		drawGameField(head, 1);
@@ -128,28 +130,28 @@ uint8_t checkIfWall(snek_pos_type snek) 		// return 1 if next step is invalid
 	uint8_t next_x, next_y, death;
 	switch(snek.dir)
 	{
-		case UP:
-			next_x = snek.pos_x;
-			next_y = snek.pos_y + 1;
-			break;
-		case DOWN:
-			next_x = snek.pos_x;
-			next_y = snek.pos_y - 1;
-			break;
-		case LEFT:
-			next_x = snek.pos_x - 1;
-			next_y = snek.pos_y;
-			break;
-		case RIGHT:
-			next_x = snek.pos_x + 1;
-			next_y = snek.pos_y;
-			break;
-		default:
-			next_x = snek.pos_x;
-			next_y = snek.pos_y;
-			break;
+	case UP:
+		next_x = snek.pos_x;
+		next_y = snek.pos_y - 1;
+		break;
+	case DOWN:
+		next_x = snek.pos_x;
+		next_y = snek.pos_y + 1;
+		break;
+	case LEFT:
+		next_x = snek.pos_x - 1;
+		next_y = snek.pos_y;
+		break;
+	case RIGHT:
+		next_x = snek.pos_x + 1;
+		next_y = snek.pos_y;
+		break;
+	default:
+		next_x = snek.pos_x;
+		next_y = snek.pos_y;
+		break;
 	}
-	if( (next_x >= GAME_FIELD_X) || (next_x < 0) || (next_y >= GAME_FIELD_Y) || (next_y < 0) )
+	if((next_x >= GAME_FIELD_X) || (next_y >= GAME_FIELD_Y))
 		death = 1;
 	else if(game_field[next_x][next_y] == 1)
 		death = 1;
@@ -166,11 +168,11 @@ uint8_t checkIfFood(snek_pos_type snek)
 		{
 			case UP:
 				next_x = snek.pos_x;
-				next_y = snek.pos_y + 1;
+				next_y = snek.pos_y - 1;
 				break;
 			case DOWN:
 				next_x = snek.pos_x;
-				next_y = snek.pos_y - 1;
+				next_y = snek.pos_y + 1;
 				break;
 			case LEFT:
 				next_x = snek.pos_x - 1;
@@ -230,19 +232,19 @@ void drawMemField(snek_pos_type snek, uint8_t data) // DATA [0/1] -> drawing sna
 		// lap-túlcsordulás védelem
 		if(y_bit < 6)  // nincs OVF
 		{
-			snek_byte = ((data << y_bit) |  (data << (y_bit+1)) | (data << (y_bit+2)));
+			snek_byte = ((1 << y_bit) |  (1 << (y_bit+1)) | (1 << (y_bit+2)));
 			ovf = 0;
 		}
 		else if(y_bit == 6) // 1db ovfbit
 		{
-			snek_byte = ((data << y_bit) |  (data << (y_bit+1)));
-			ovf_byte = ((data << 0));
+			snek_byte = ((1 << y_bit) |  (1 << (y_bit+1)));
+			ovf_byte = ((1 << 0));
 			ovf = 1;
 		}
 		else	//y_bit == 7, 2db of bit
 		{
-			snek_byte = (data << y_bit);
-			ovf_byte = ((data << 0) | (data << 1));
+			snek_byte = (1 << y_bit);
+			ovf_byte = ((1 << 0) | (1 << 1));
 			ovf = 1;
 		}
 
@@ -253,16 +255,16 @@ void drawMemField(snek_pos_type snek, uint8_t data) // DATA [0/1] -> drawing sna
 			sendColAddr(col);
 			for(i = 0; i < 3; i++)
 			{
-				mem_field[col +i*3][memPage] = (mem_field[col +i*3][memPage] | snek_byte );
-				sendDataLCD(mem_field[col +i*3][memPage]);
+				mem_field[col + i][memPage] = (mem_field[col + i][memPage] | snek_byte );
+				sendDataLCD(mem_field[col + i][memPage]);
 			}
 
 			sendMemPageAddr(memPage+1);
 			sendColAddr(col);
 			for(i = 0; i < 3; i++)
 			{
-				mem_field[col +i*3][memPage+1] = (mem_field[col +i*3][memPage+1] | ovf_byte);
-				sendDataLCD(mem_field[col +i*3][memPage+1]);
+				mem_field[col + i][memPage+1] = (mem_field[col + i][memPage+1] | ovf_byte);
+				sendDataLCD(mem_field[col + i][memPage+1]);
 			}
 		}
 		else	// A 3*3 négyzet egy memPage-en van
@@ -272,8 +274,8 @@ void drawMemField(snek_pos_type snek, uint8_t data) // DATA [0/1] -> drawing sna
 
 			for(i = 0; i < 3; i++)
 			{
-				mem_field[col +i*3][memPage] = (mem_field[col +i*3][memPage] | snek_byte );
-				sendDataLCD(mem_field[col +i*3][memPage]);
+				mem_field[col + i][memPage] = (mem_field[col +i][memPage] | snek_byte );
+				sendDataLCD(mem_field[col + i][memPage]);
 			}
 		}
 	}
@@ -305,9 +307,9 @@ void drawMemField(snek_pos_type snek, uint8_t data) // DATA [0/1] -> drawing sna
 			food[1] = (1 << y_bit);
 			food[2] = (0 << y_bit);
 
-			ovf_food[0] = ((1 << 0) |  (1 << 0));
+			ovf_food[0] = ((1 << 0) |  (0 << 1));
 			ovf_food[1] = ((0 << 0) |  (1 << 1));
-			ovf_food[2] = ((1 << 0) |  (1 << 0));
+			ovf_food[2] = ((1 << 0) |  (0 << 1));
 			ovf = 1;
 		}
 
@@ -318,15 +320,16 @@ void drawMemField(snek_pos_type snek, uint8_t data) // DATA [0/1] -> drawing sna
 			sendColAddr(col);
 			for(i = 0; i < 3; i++)
 			{
-				mem_field[col +i*3][memPage] = (mem_field[col +i*3][memPage] | food[i] );
-				sendDataLCD(mem_field[col +i*3][memPage]);
+				mem_field[col +i][memPage] = (mem_field[col +i][memPage] | food[i] );
+				sendDataLCD(mem_field[col +i][memPage]);
 			}
 
-			sendMemPageAddr(memPage);
+			sendMemPageAddr(memPage+1);
 			sendColAddr(col);
 			for(i = 0; i < 3; i++)
 			{
-				mem_field[col +i*3][memPage+1] = (mem_field[col +i*3][memPage+1] | ovf_food[i]);
+				mem_field[col +i][memPage+1] = (mem_field[col +i][memPage+1] | ovf_food[i]);
+				sendDataLCD(mem_field[col +i][memPage+1]);
 			}
 		}
 		else	// A 3*3 négyzet egy memPage-en van
@@ -336,8 +339,8 @@ void drawMemField(snek_pos_type snek, uint8_t data) // DATA [0/1] -> drawing sna
 
 			for(i = 0; i < 3; i++)
 			{
-				mem_field[col +i*3][memPage] = (mem_field[col +i*3][memPage] | food[i] );
-				sendDataLCD(mem_field[col +i*3][memPage]);
+				mem_field[col +i][memPage] = (mem_field[col +i][memPage] | food[i] );
+				sendDataLCD(mem_field[col +i][memPage]);
 			}
 		}
 	}
@@ -348,6 +351,7 @@ void eraseTailGameField()
 	game_field[tail.pos_x][tail.pos_y] = 0;
 	eraseTailMemField();
 }
+
 void eraseTailMemField()
 {
 	volatile uint8_t i;
@@ -363,19 +367,19 @@ void eraseTailMemField()
 	// lap-túlcsordulás védelem
 	if(y_bit < 6)  // nincs OVF
 	{
-		snek_byte = snek_byte & ((0 << y_bit) |  (0 << (y_bit+1)) | (0 << (y_bit+2)));
+		snek_byte = ~snek_byte | ~((1 << y_bit) |  (1 << (y_bit+1)) | (1 << (y_bit+2)));
 		ovf = 0;
 	}
 	else if(y_bit == 6) // 1db ovfbit
 	{
-		snek_byte = snek_byte & ((0 << y_bit) |  (0 << (y_bit+1)));
-		ovf_byte = ovf_byte & ((0 << 0));
+		snek_byte = ~snek_byte | ~((1 << y_bit) |  (1 << (y_bit+1)));
+		ovf_byte = ~ovf_byte | ~((1 << 0));
 		ovf = 1;
 	}
 	else	//y_bit == 7, 2db ovf bit
 	{
-		snek_byte = snek_byte & (0 << y_bit);
-		ovf_byte = ovf_byte & ((0 << 0) | (0 << 1));
+		snek_byte = ~snek_byte | ~(1 << y_bit);
+		ovf_byte = ~ovf_byte | ~((1 << 0) | (1 << 1));
 		ovf = 1;
 	}
 
@@ -386,16 +390,16 @@ void eraseTailMemField()
 		sendColAddr(col);
 		for(i = 0; i < 3; i++)
 		{
-			mem_field[col +i*3][memPage] = (mem_field[col +i*3][memPage] & snek_byte );
-			sendDataLCD(mem_field[col +i*3][memPage]);
+			mem_field[col +i][memPage] = (mem_field[col +i][memPage] & snek_byte );
+			sendDataLCD(mem_field[col +i][memPage]);
 		}
 
 		sendMemPageAddr(memPage+1);
 		sendColAddr(col);
 		for(i = 0; i < 3; i++)
 		{
-			mem_field[col +i*3][memPage+1] = (mem_field[col +i*3][memPage+1] & ovf_byte);
-			sendDataLCD(mem_field[col +i*3][memPage+1]);
+			mem_field[col +i][memPage+1] = (mem_field[col +i][memPage+1] & ovf_byte);
+			sendDataLCD(mem_field[col +i][memPage+1]);
 		}
 	}
 	else	// A 3*3 négyzet egy memPage-en van
@@ -405,15 +409,48 @@ void eraseTailMemField()
 
 		for(i = 0; i < 3; i++)
 		{
-			mem_field[col +i*3][memPage] = (mem_field[col +i*3][memPage] & snek_byte );
-			sendDataLCD(mem_field[col +i*3][memPage]);
+			mem_field[col +i][memPage] = (mem_field[col +i][memPage] & snek_byte );
+			sendDataLCD(mem_field[col +i][memPage]);
 		}
 	}
 }
 
 void initFood()
 {
+	uint8_t food_x, food_y;
+	uint8_t regen;
+	snek_pos_type food_snek;
 
+	if(rand_flag)
+		{
+			srand(time(NULL));
+			rand_flag = 0;
+		}
+	// lövünk egyet 0-33 ill. 0-20 között
+		food_x = rand() % 33;
+		food_y = rand() % 20;
+	do {
+		if(game_field[food_x][food_y] == 1)		//Van itt kígyó
+		{
+			regen = 1;							// "one more time" - DaftPunk
+			// végig lépkedünk a játéktéren keresve a jó helyet.
+			if(++food_x == 34)
+			{
+				food_x = 0;
+				if(++food_y == 21)
+					food_y = 0;
+			}
+		}
+		else
+		{
+			regen = 0;
+		}
+
+	} while (regen);
+
+	food_snek.pos_x = food_x;
+	food_snek.pos_y = food_y;
+	drawGameField(food_snek, 2);
 }
 
 void initGameField(snek_pos_type init_head, snek_pos_type init_tail, uint8_t lvl)
@@ -428,7 +465,7 @@ void initGameField(snek_pos_type init_head, snek_pos_type init_tail, uint8_t lvl
 	snek_byte = ((1 << y_bit) |  (1 << (y_bit+1)) | (1 << (y_bit+2)));	//memField bitjei (most nem kell lap-túlcsordulás check, mert init)
 
 	/* ITT A JÁTÉKTÉRBE BELEKERÜL A KEZDETI SNEK  */
-	for(i=init_tail.pos_x; i<((init_head.pos_x - init_tail.pos_x)+1); i++)
+	for(i=0; i<((init_head.pos_x - init_tail.pos_x)+1); i++)
 	{
 		game_field[init_tail.pos_x + i][init_tail.pos_y] = 1;			//gameField írás
 		mem_field[(col+i*3)][memPage] = snek_byte;						//mem_field írás
@@ -482,6 +519,7 @@ void chgLVL(uint8_t next_lvl)
 			ctr = LVL_1;
 		}
 	timer_tickmod(ctr);
+
 }
 
 void resetGameField()

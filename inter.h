@@ -10,5 +10,9 @@
 
 void setFlag();
 void clrFlag();
+void levelUP();
+void pointPlus();
+void clrPoints();
+void gg();
 
 #endif /* INTER_H_ */

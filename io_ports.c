@@ -7,10 +7,17 @@
 
 #include "io_ports.h"
 
+static uint32_t prev_navi = 0x08;// mert a default irány a jobbra
+
+void reNavi()
+{
+	prev_navi = 0x08;
+}
+
 uint8_t swChanged() //visszaadjuk a szint értékét, ha voltváltozás, egyébként meg 0
 {
 	uint8_t lvl = 0;
-	static uint32_t prev_sw = 0;
+	static uint32_t prev_sw = 1;
 	uint32_t switches;
 
 	switches = Xil_In32(XPAR_CPLD_0_BASEADDR + CPLD_DIPSW);
@@ -55,7 +62,6 @@ uint8_t swChanged() //visszaadjuk a szint értékét, ha voltváltozás, egyébként me
 dir_t naviDir()
 {
 	uint32_t navi;
-	static uint32_t prev_navi = 0x08;// mert a default irány a jobbra
 
 	navi = Xil_In32(XPAR_CPLD_0_BASEADDR + CPLD_NAVI);	//REG olvasás
 

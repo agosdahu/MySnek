@@ -71,6 +71,7 @@ void test()
 	static uint8_t byte = 0x01;
 	static uint8_t init_flag = 1;
 
+
 	if(init_flag)
 	{
 		sendMemPageAddr(memPage);
@@ -82,13 +83,13 @@ void test()
 	{
 		memPage++;
 		col = 0;
-		sendMemPageAddr(memPage);
-		sendColAddr(col);
 	}
 
 	if(memPage >= 8)
 	{
-		xil_printf("OVF");
+		memPage = 0;
+		col = 0;
+		byte = 0x01;
 	}
 	else
 	{
@@ -96,8 +97,12 @@ void test()
 		byte = byte << 1;
 		if(byte == 0)
 			byte = 0x01;
-		sendDataLCD(byte);
+
 	}
+
+	sendMemPageAddr(memPage);
+	sendColAddr(col);
+	sendDataLCD(byte);
 }
 
 void lcd_clrscr()

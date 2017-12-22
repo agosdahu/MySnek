@@ -11,6 +11,9 @@
 #include "mytype.h"
 #include "timer.h"
 #include "lcd.h"
+#include "inter.h"
+#include <stdlib.h>
+#include <time.h>
 
 #define GAME_FIELD_X	34u
 #define GAME_FIELD_Y	21u

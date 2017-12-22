@@ -19,6 +19,7 @@
 #define CPLD_7SEG_L		0x10
 #define CPLD_LED 		0x14
 
+void reNavi();
 uint8_t swChanged();
 dir_t naviDir();
 void write7Seg(uint8_t num);
